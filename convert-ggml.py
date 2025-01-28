@@ -59,7 +59,7 @@ encoder = json.load(open(f"{args.model_dir}/vocab.json", "r", encoding="utf8"))
 encoder_added = json.load(open(f"{args.model_dir}/added_tokens.json", "r", encoding="utf8"))
 hparams = json.load(open(f"{args.model_dir}/config.json", "r", encoding="utf8"))
 # 支持large-v3模型
-if "max_length" not in hparams.keys():
+if "max_length" not in hparams.keys() or hparams['max_length'] is None:
     hparams["max_length"] = hparams["max_target_positions"]
 
 model = WhisperForConditionalGeneration.from_pretrained(args.model_dir)
@@ -72,7 +72,6 @@ tokens = json.load(open(f"{args.model_dir}/vocab.json", "r", encoding="utf8"))
 
 os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
 fout = open(args.output_path, "wb")
-
 fout.write(struct.pack("i", 0x67676d6c))  # magic: ggml in hex
 fout.write(struct.pack("i", hparams["vocab_size"]))
 fout.write(struct.pack("i", hparams["max_source_positions"]))
