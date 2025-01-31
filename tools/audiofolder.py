@@ -5,15 +5,19 @@ import os.path
 import click
 import soundfile
 from tqdm import tqdm
-from transformers import PreTrainedTokenizerFast
-
-tokenizer = PreTrainedTokenizerFast.from_pretrained("openai/whisper-base")
+from transformers import WhisperTokenizer
 
 
 @click.command()
 @click.option("--folder", "-f", required=True, type=str,
               help='Path to the dataset folder')
-def prepare_dataset(folder):
+@click.option("--language", "-l", default="Chinese")
+@click.option("--base_model", "-m", default="openai/whisper-base")
+def prepare_dataset(folder, language, base_model):
+    tokenizer = WhisperTokenizer.from_pretrained(base_model,
+                                                     language=language,
+                                                     task="transcribe")
+
     with open(os.path.join(folder, "metadata.csv"), 'r', encoding='utf-8') as file:
         reader = csv.reader(file)
         rows = list(reader)

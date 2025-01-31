@@ -13,6 +13,7 @@ tokenizer = None
 
 
 def deal_rows(rows, folder, output_file):
+    global tokenizer
     lines = []
     for row in rows:
         if "|" not in row:
@@ -39,7 +40,7 @@ def deal_rows(rows, folder, output_file):
 @click.option("--folder", "-f", required=True, type=str,
               help='Path to the dataset folder')
 @click.option("--language", "-l", default="Chinese")
-@click.option("--base_model", "-m", default="openai/whisper-large-v2")
+@click.option("--base_model", "-m", default="openai/whisper-base")
 def prepare_dataset(folder, language, base_model):
     global tokenizer
     if tokenizer is None:
