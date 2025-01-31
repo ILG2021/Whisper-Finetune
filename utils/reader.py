@@ -1,11 +1,14 @@
 import json
 import os
 import random
+import shutil
 import sys
+import zipfile
 from typing import List
 
 import librosa
 import numpy as np
+import requests
 import soundfile
 from torch.utils.data import Dataset
 from tqdm import tqdm
@@ -68,6 +71,36 @@ class CustomDataset(Dataset):
         if augment_config_path:
             with open(augment_config_path, 'r', encoding='utf-8') as f:
                 self.augment_configs = json.load(f)
+                for config in self.augment_configs:
+                    if config['type'] == 'noise':
+                        noise_dir = config['params']['noise_dir']
+                        if not os.path.exists(noise_dir):  # Use ESC-50 as default noise dataset
+                            self.download_esc_50()
+
+    @staticmethod
+    def download_esc_50():
+        # 下载 URL
+        url = "https://github.com/karoldvl/ESC-50/archive/master.zip"
+        zip_path = "ESC-50-master.zip"
+        extract_path = "ESC-50-master"
+
+        # 下载 ZIP 文件
+        print("Downloading ESC-50 dataset...")
+        response = requests.get(url, stream=True)
+        with open(zip_path, "wb") as f:
+            for chunk in response.iter_content(chunk_size=1024):
+                if chunk:
+                    f.write(chunk)
+        print("Download complete.")
+
+        # 解压 ZIP 文件
+        print("Extracting files...")
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
+            zip_ref.extractall(extract_path)
+        print("Extraction complete.")
+
+        os.remove("ESC-50-master.zip")
+        shutil.move("ESC-50-master/audio", "dataset/noise")
 
     # 加载数据列表
     def _load_data_list(self):
@@ -263,7 +296,7 @@ class CustomDataset(Dataset):
     # 改变音量
     @staticmethod
     def volume(sample, gain):
-        sample *= 10.**(gain / 20.)
+        sample *= 10. ** (gain / 20.)
         return sample
 
     # 声音重采样
@@ -297,4 +330,3 @@ class CustomDataset(Dataset):
     def rms_db(sample):
         mean_square = np.mean(sample ** 2)
         return 10 * np.log10(mean_square)
-        

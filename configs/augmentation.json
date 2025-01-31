@@ -30,7 +30,7 @@
       "min_shift_ms": -5,
       "max_shift_ms": 5
     },
-    "prob": 0.0
+    "prob": 0.5
   },
   {
     "type": "volume",
