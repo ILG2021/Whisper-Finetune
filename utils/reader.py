@@ -82,7 +82,7 @@ class CustomDataset(Dataset):
         # 下载 URL
         url = "https://github.com/karoldvl/ESC-50/archive/master.zip"
         zip_path = "ESC-50-master.zip"
-        extract_path = "ESC-50-master"
+        extract_path = "./"
 
         # 下载 ZIP 文件
         print("Downloading ESC-50 dataset...")

@@ -3,12 +3,14 @@
 import json
 import os.path
 import random
+from email.policy import default
+
 import click
 import soundfile
 from tqdm import tqdm
-from transformers import PreTrainedTokenizerFast
+from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments, WhisperForConditionalGeneration, WhisperProcessor
 
-tokenizer = PreTrainedTokenizerFast.from_pretrained("openai/whisper-base")
+tokenizer = None
 
 
 def deal_rows(rows, folder, output_file):
@@ -37,7 +39,14 @@ def deal_rows(rows, folder, output_file):
 @click.command()
 @click.option("--folder", "-f", required=True, type=str,
               help='Path to the dataset folder')
-def prepare_dataset(folder):
+@click.option("--language", "-l", default="Chinese")
+@click.option("--base_model", "-m", default="openai/whisper-large-v2")
+def prepare_dataset(folder, language, base_model):
+    global tokenizer
+    if tokenizer is None:
+        tokenizer = WhisperProcessor.from_pretrained(base_model,
+                                         language=language,
+                                         task="transcribe").feature_extractor
     rows = open(os.path.join(folder, "metadata.csv"), 'r', encoding='utf-8').read().split("\n")
     random.shuffle(rows)
     split_index = len(rows) // 10
