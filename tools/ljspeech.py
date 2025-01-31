@@ -3,12 +3,11 @@
 import json
 import os.path
 import random
-from email.policy import default
 
 import click
 import soundfile
 from tqdm import tqdm
-from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments, WhisperForConditionalGeneration, WhisperProcessor
+from transformers import WhisperTokenizer
 
 tokenizer = None
 
@@ -44,9 +43,9 @@ def deal_rows(rows, folder, output_file):
 def prepare_dataset(folder, language, base_model):
     global tokenizer
     if tokenizer is None:
-        tokenizer = WhisperProcessor.from_pretrained(base_model,
+        tokenizer = WhisperTokenizer.from_pretrained(base_model,
                                          language=language,
-                                         task="transcribe").feature_extractor
+                                         task="transcribe")
     rows = open(os.path.join(folder, "metadata.csv"), 'r', encoding='utf-8').read().split("\n")
     random.shuffle(rows)
     split_index = len(rows) // 10
