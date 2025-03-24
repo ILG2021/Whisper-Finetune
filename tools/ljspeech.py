@@ -21,7 +21,7 @@ def deal_rows(rows, folder, output_file, language):
 		file_name, text = row.split("|")
 		if len(tokenizer.encode(text)) > 448:
 			continue
-		line = {"audio": {"path": os.path.join(folder, "wavs", file_name.replace(".wav", "") + ".wav")},
+		line = {"audio": {"path": os.path.join(folder, "wavs", file_name.replace(".wav", "") + ".wav").replace("\\", "/")},
 				"sentence": text, "language": language}
 		lines.append(line)
 
@@ -52,8 +52,8 @@ def prepare_dataset(folder, language):
 	split_index = len(rows) // 10
 	test_rows = rows[:split_index]
 	train_rows = rows[split_index:]
-	deal_rows(train_rows, folder, os.path.join("dataset", "train.json"), language)
-	deal_rows(test_rows, folder, os.path.join("dataset", "test.json"), language)
+	deal_rows(train_rows, folder, os.path.join(folder, "train.json"), language)
+	deal_rows(test_rows, folder, os.path.join(folder, "test.json"), language)
 
 
 if __name__ == '__main__':

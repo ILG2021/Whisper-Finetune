@@ -1,0 +1,1 @@
+python .\finetune.py --base_model "openai/whisper-large-v2" --use_8bit True --train_data dataset/train.json --test_data dataset/test.json --language None --augment_config_path dataset/augmentation.json
