@@ -16,6 +16,13 @@ OpenAI在开源了号称其英文语音辨识能力已达到人类水准的Whisp
 
 使用whisper-small微调后的模型：[在线演示](https://tools.yeyupiaoling.cn/speech/whisper)
 
+<div align="center">
+  <img src="https://tools.yeyupiaoling.cn/static/wechat-qr/whisper.jpg" alt="微信小程序" width="200"><br/>
+  微信小程序(whisper-small微调后的模型)
+</div>
+
+
+
 ## 支持模型
 
  - openai/whisper-tiny
@@ -25,6 +32,7 @@ OpenAI在开源了号称其英文语音辨识能力已达到人类水准的Whisp
  - openai/whisper-large
  - openai/whisper-large-v2
  - openai/whisper-large-v3
+ - openai/whisper-large-v3-turbo
 
 **欢迎大家扫码入知识星球（左）或者QQ群（右）讨论，知识星球里面提供项目的模型文件和博主其他相关项目的模型文件，也包括其他一些资源。**
 
@@ -37,8 +45,8 @@ OpenAI在开源了号称其英文语音辨识能力已达到人类水准的Whisp
 **使用环境：**
 
 - Anaconda 3
-- Python 3.8
-- Pytorch 1.13.1
+- Python 3.11
+- Pytorch 2.4.0
 - Ubuntu 18.04
 - GPU A100-PCIE-40GB*1
 
@@ -153,17 +161,17 @@ OpenAI在开源了号称其英文语音辨识能力已达到人类水准的Whisp
 
 1. 以下是使用Anaconda安装Pytorch环境，如果已经安装过了，请跳过。
 ```shell
-conda install pytorch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 pytorch-cuda=11.8 -c pytorch -c nvidia
+conda install pytorch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0  pytorch-cuda=11.8 -c pytorch -c nvidia
 ```
 
 2. 以下是使用Docker镜像，拉取一个Pytorch环境的镜像。
 ```shell
-sudo docker pull pytorch/pytorch:2.1.0-cuda11.8-cudnn8-devel
+sudo docker pull pytorch/pytorch:2.4.0-cuda11.8-cudnn9-devel
 ```
 
 然后进入到镜像中，同时将当前路径挂载到容器的`/workspace`目录下。
 ```shell
-sudo nvidia-docker run --name pytorch -it -v $PWD:/workspace pytorch/pytorch:2.1.0-cuda11.8-cudnn8-devel /bin/bash
+sudo nvidia-docker run --name pytorch -it -v $PWD:/workspace pytorch/pytorch:2.4.0-cuda11.8-cudnn9-devel /bin/bash
 ```
 
 - 安装所需的依赖库。

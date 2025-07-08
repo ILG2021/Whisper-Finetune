@@ -26,6 +26,8 @@ class CustomDataset(Dataset):
                  sample_rate=16000,
                  min_duration=0.5,
                  max_duration=30,
+                 min_sentence=1,
+                 max_sentence=200,
                  augment_config_path=None):
         """
         Args:
@@ -37,11 +39,15 @@ class CustomDataset(Dataset):
             sample_rate: 音频的采样率，默认是16000
             min_duration: 小于这个时间段的音频将被截断，单位秒，不能小于0.5，默认0.5s
             max_duration: 大于这个时间段的音频将被截断，单位秒，不能大于30，默认30s
+            min_sentence: 微调时最少的句子字数，默认1
+            max_sentence: 微调时最多句子字数，默认200
             augment_config_path: 数据增强配置参数文件路径
         """
         super(CustomDataset, self).__init__()
         assert min_duration >= 0.5, f"min_duration不能小于0.5，当前为：{min_duration}"
         assert max_duration <= 30, f"max_duration不能大于30，当前为：{max_duration}"
+        assert min_sentence >= 1, f"min_sentence不能小于1，当前为：{min_sentence}"
+        assert max_sentence <= 200, f"max_sentence不能大于200，当前为：{max_sentence}"
         self.data_list_path = data_list_path
         self.processor = processor
         self.data_list_path = data_list_path
@@ -51,6 +57,8 @@ class CustomDataset(Dataset):
         self.timestamps = timestamps
         self.min_duration = min_duration
         self.max_duration = max_duration
+        self.min_sentence = min_sentence
+        self.max_sentence = max_sentence
         self.vocab = self.processor.tokenizer.get_vocab()
         self.startoftranscript = self.vocab['<|startoftranscript|>']
         self.endoftext = self.vocab['<|endoftext|>']
@@ -124,6 +132,16 @@ class CustomDataset(Dataset):
                     continue
                 if self.max_duration != -1 and line["duration"] > self.max_duration:
                     continue
+                # 跳过超出句子字数限制的音频
+                if 'sentence' in line.keys():
+                    if len(line["sentence"]) < self.min_sentence or len(line["sentence"]) > self.max_sentence:
+                        continue
+                else:
+                    sentence_len = 0
+                    for s in line["sentences"]:
+                        sentence_len += len(s['text'])
+                    if sentence_len < self.min_sentence or sentence_len > self.max_sentence:
+                        continue
                 self.data_list.append(dict(line))
 
     # 从数据列表里面获取音频数据、采样率和文本

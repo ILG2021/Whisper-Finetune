@@ -1,6 +1,7 @@
 import argparse
 import functools
 import os
+import platform
 
 from peft import LoraConfig, get_peft_model, AdaLoraConfig, PeftModel, prepare_model_for_kbit_training
 from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments, WhisperForConditionalGeneration, WhisperProcessor
@@ -44,6 +45,10 @@ add_arg("hub_model_id",                type=str,  default=None,  help="HuggingFa
 add_arg("save_total_limit",            type=int,  default=10,  help="只保存最新检查点的数量")
 args = parser.parse_args()
 print_arguments(args)
+
+# 如果是Windows，num_workers设置为0
+if platform.system() == "Windows":
+    args.num_workers = 0
 
 
 def main():
@@ -101,15 +106,17 @@ def main():
         target_modules = ["k_proj", "q_proj", "v_proj", "out_proj", "fc1", "fc2"]
         print(target_modules)
         if args.use_adalora:
+            total_step = args.num_train_epochs * len(train_dataset)
             config = AdaLoraConfig(init_r=12, target_r=4, beta1=0.85, beta2=0.85, tinit=200, tfinal=1000, deltaT=10,
-                                   lora_alpha=32, lora_dropout=0.1, orth_reg_weight=0.5, target_modules=target_modules)
+                                   lora_alpha=32, lora_dropout=0.1, orth_reg_weight=0.5, target_modules=target_modules,
+                                   total_step=total_step)
         else:
             config = LoraConfig(r=32, lora_alpha=64, target_modules=target_modules, lora_dropout=0.05, bias="none")
         model = get_peft_model(model, config)
 
     if args.base_model.endswith("/"):
         args.base_model = args.base_model[:-1]
-    output_dir = os.path.join(args.output_dir, os.path.basename(args.base_model))
+    output_dir = str(os.path.join(args.output_dir, os.path.basename(args.base_model)))
     # 定义训练参数
     training_args = \
         Seq2SeqTrainingArguments(output_dir=output_dir,  # 保存检查点和意志的目录
@@ -120,7 +127,7 @@ def main():
                                  warmup_steps=args.warmup_steps,  # 预热步数
                                  num_train_epochs=args.num_train_epochs,  # 微调训练轮数
                                  save_strategy="steps",  # 指定按照步数保存检查点
-                                 evaluation_strategy="steps",  # 指定按照步数评估模型
+                                 eval_strategy="steps",  # 指定按照步数评估模型
                                  load_best_model_at_end=True,  # 指定是否在结束时加载最优模型
                                  fp16=args.fp16,  # 是否使用半精度训练
                                  report_to=["tensorboard"],  # 指定使用tensorboard保存log
@@ -134,7 +141,7 @@ def main():
                                  logging_steps=args.logging_steps,  # 指定打印log的步数
                                  remove_unused_columns=False,  # 删除模型不需要的数据列
                                  label_names=["labels"],  # 与标签对应的输入字典中的键列表
-                                 push_to_hub=args.push_to_hub,
+                                 push_to_hub=args.push_to_hub, # 是否将模型权重推到HuggingFace Hub
                                  )
 
     if training_args.local_rank == 0 or training_args.local_rank == -1:
@@ -148,7 +155,7 @@ def main():
                              train_dataset=train_dataset,
                              eval_dataset=test_dataset,
                              data_collator=data_collator,
-                             tokenizer=processor.feature_extractor,
+                             processing_class=processor.feature_extractor,
                              callbacks=[SavePeftModelCallback])
     model.config.use_cache = False
     trainer._load_from_checkpoint = load_from_checkpoint
