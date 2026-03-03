@@ -18,6 +18,9 @@ def deal_rows(rows, folder, output_file, language):
 	for row in rows:
 		if "|" not in row:
 			continue
+		if len(row.split("|")) != 2:
+			print(row, "数据格式有问题")
+			continue
 		file_name, text = row.split("|")
 		if len(tokenizer.encode(text)) > 448:
 			continue
