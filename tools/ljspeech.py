@@ -49,7 +49,7 @@ def prepare_dataset(folder, language):
 													 task="transcribe")
 	rows = open(os.path.join(folder, "metadata.csv"), 'r', encoding='utf-8').read().split("\n")
 	random.shuffle(rows)
-	split_index = 10
+	split_index = 50
 	test_rows = rows[:split_index]
 	train_rows = rows[split_index:]
 	deal_rows(train_rows, folder, os.path.join(folder, "train.json"), language)
