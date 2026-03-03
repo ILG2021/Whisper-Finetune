@@ -24,16 +24,16 @@ def deal_rows(rows, folder, output_file, language):
 		file_name, text = row.split("|")
 		if len(tokenizer.encode(text)) > 448:
 			continue
-		line = {"audio": {"path": os.path.join(folder, "wavs", file_name.replace(".wav", "") + ".wav").replace("\\", "/")},
-				"sentence": text, "language": language}
-		lines.append(line)
+		try:
+			audio_path = os.path.join(folder, "wavs", file_name.replace(".wav", "") + ".wav").replace("\\", "/")
+			sample, sr = soundfile.read(audio_path)
+			duration = round(sample.shape[-1] / float(sr), 2)
+			line = {"audio": {"path": audio_path},
+					"sentence": text, "language": language, "duration": duration, "sentences": [{"start": 0, "end": duration, "text": text}]}
+			lines.append(line)
+		except Exception as e:
+			print(e)
 
-	for i in tqdm(range(len(lines))):
-		audio_path = lines[i]['audio']['path']
-		sample, sr = soundfile.read(audio_path)
-		duration = round(sample.shape[-1] / float(sr), 2)
-		lines[i]["duration"] = duration
-		lines[i]["sentences"] = [{"start": 0, "end": duration, "text": lines[i]["sentence"]}]
 	f = open(output_file, 'w', encoding='utf-8')
 	for line in lines:
 		f.write(json.dumps(line, ensure_ascii=False) + "\n")
